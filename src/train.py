@@ -95,12 +95,14 @@ def train_model_simple(model, train_loader, val_loader, optimizer, device, num_e
     for epoch in range(num_epochs):
         model.train()
         for input_batch, target_batch in train_loader:
+            # fmt: off
             optimizer.zero_grad()                                  # 이전 step의 gradient 초기화
             loss = calc_loss_batch(input_batch, target_batch, model, device)
             loss.backward()                                        # gradient 계산
             if grad_clip:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip)
             optimizer.step()                                       # parameter 갱신
+            # fmt: on
             tokens_seen += input_batch.numel()
             global_step += 1
 
