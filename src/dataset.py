@@ -4,6 +4,7 @@ GPT 사전 학습용 Dataset / DataLoader.  (교재 2.6)
 [학생 구현] GPTDatasetV1.__init__의 슬라이딩 윈도 루프   (약 4줄)
 [제공]     __len__, __getitem__, create_dataloader_v1
 """
+
 import torch
 from torch.utils.data import DataLoader, Dataset
 
@@ -37,8 +38,21 @@ class GPTDatasetV1(Dataset):
         return self.input_ids[idx], self.target_ids[idx]
 
 
-def create_dataloader_v1(txt, tokenizer, batch_size=4, max_length=256, stride=128,
-                         shuffle=True, drop_last=True, num_workers=0):
+def create_dataloader_v1(
+    txt,
+    tokenizer,
+    batch_size=4,
+    max_length=256,
+    stride=128,
+    shuffle=True,
+    drop_last=True,
+    num_workers=0,
+):
     dataset = GPTDatasetV1(txt, tokenizer, max_length, stride)
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
-                      drop_last=drop_last, num_workers=num_workers)
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        drop_last=drop_last,
+        num_workers=num_workers,
+    )

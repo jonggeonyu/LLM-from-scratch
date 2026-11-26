@@ -38,20 +38,45 @@ BASIC_CONFIG = {
     "qkv_bias": False,
 }
 
-SMOKE_TRAIN = {"batch_size": 4, "learning_rate": 1e-3, "weight_decay": 0.1,
-               "num_epochs": 1, "eval_freq": 20, "eval_iter": 3, "grad_clip": 1.0}
+SMOKE_TRAIN = {
+    "batch_size": 4,
+    "learning_rate": 1e-3,
+    "weight_decay": 0.1,
+    "num_epochs": 1,
+    "eval_freq": 20,
+    "eval_iter": 3,
+    "grad_clip": 1.0,
+}
 
-LIGHT_TRAIN = {"batch_size": 8, "learning_rate": 3e-4, "weight_decay": 0.1,
-               "num_epochs": 5, "eval_freq": 100, "eval_iter": 5, "grad_clip": 1.0}
+LIGHT_TRAIN = {
+    "batch_size": 8,
+    "learning_rate": 3e-4,
+    "weight_decay": 0.1,
+    "num_epochs": 5,
+    "eval_freq": 100,
+    "eval_iter": 5,
+    "grad_clip": 1.0,
+}
 
-BASIC_TRAIN = {"batch_size": 16, "learning_rate": 3e-4, "weight_decay": 0.1,
-               "num_epochs": 2, "eval_freq": 200, "eval_iter": 10, "grad_clip": 1.0}
+BASIC_TRAIN = {
+    "batch_size": 16,
+    "learning_rate": 3e-4,
+    "weight_decay": 0.1,
+    "num_epochs": 2,
+    "eval_freq": 200,
+    "eval_iter": 10,
+    "grad_clip": 1.0,
+}
 
 # 데이터 규모. Smoke·Light vocabulary는 data/에 미리 만들어 제공합니다.
 # Basic vocabulary는 직접 학습한 뒤 vocab_path에 저장해 재사용합니다.
 SMOKE_DATA = {"chars": 5_000, "vocab_size": 300, "vocab_path": "data/nsmc_bpe_vocab_smoke.json"}
 LIGHT_DATA = {"chars": 100_000, "vocab_size": 1000, "vocab_path": "data/nsmc_bpe_vocab_light.json"}
-BASIC_DATA = {"chars": 1_500_000, "vocab_size": 3000, "vocab_path": "data/nsmc_bpe_vocab_basic.json"}
+BASIC_DATA = {
+    "chars": 1_500_000,
+    "vocab_size": 3000,
+    "vocab_path": "data/nsmc_bpe_vocab_basic.json",
+}
 
 
 def assert_vocab_match(config: dict, tokenizer) -> None:
@@ -62,4 +87,5 @@ def assert_vocab_match(config: dict, tokenizer) -> None:
             f"모델 vocab_size({config['vocab_size']})와 tokenizer 어휘 수({n})가 다릅니다.\n"
             f"  - 모델이 더 크면: 임베딩의 일부가 학습되지 않는 죽은 파라미터가 됩니다.\n"
             f"  - 모델이 더 작으면: IndexError(index out of range in self)가 납니다.\n"
-            f"같은 규모(Smoke/Light/Basic)의 config와 vocabulary를 쓰고 있는지 확인하세요.")
+            f"같은 규모(Smoke/Light/Basic)의 config와 vocabulary를 쓰고 있는지 확인하세요."
+        )

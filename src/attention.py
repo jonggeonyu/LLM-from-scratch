@@ -7,6 +7,7 @@ Causal Multi-Head Self-Attention.  (교재 3.6.2)  ★ 이 과정의 핵심입�
 score, mask, softmax 계산은 Day 4에 만든 scaled_dot_product_attention을 그대로 사용합니다.
 여기서 새로 익힐 개념은 "d_out개의 feature를 num_heads개 head로 나누어 동시에 계산하고 다시 합치는 것"입니다.
 """
+
 import torch
 import torch.nn as nn
 
@@ -31,7 +32,8 @@ class MultiHeadAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)
         # 미래 위치(대각선 위쪽)가 1인 상삼각 행렬. 대각선(자기 자신)은 가리지 않습니다.
         self.register_buffer(
-            "mask", torch.triu(torch.ones(context_length, context_length), diagonal=1))
+            "mask", torch.triu(torch.ones(context_length, context_length), diagonal=1)
+        )
 
     def forward(self, x, causal_mask=True, return_attention_weights=False):
         """

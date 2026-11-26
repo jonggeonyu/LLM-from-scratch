@@ -9,6 +9,7 @@ get_pair_counts와 merge_pair는 torch도 UTF-8도 클래스 상태도 다루지
 train은 이 두 함수로 "가장 자주 붙어 나오는 pair를 새 token으로 등록"하는 과정을 반복합니다.
 손으로 검산할 수 있으니, 막히면 tests/test_bpe.py의 예시를 종이에 써 보세요.
 """
+
 import json
 from pathlib import Path
 
@@ -68,11 +69,20 @@ class BPETokenizer:
             self.id_to_token[idx] = b
             self.token_to_id[b] = idx
 
-    def get_pad_id(self): return SPECIAL_IDS[PAD_TOKEN]
-    def get_unk_id(self): return SPECIAL_IDS[UNK_TOKEN]
-    def get_bos_id(self): return SPECIAL_IDS[BOS_TOKEN]
-    def get_eos_id(self): return SPECIAL_IDS[EOS_TOKEN]
-    def __len__(self): return len(self.id_to_token)
+    def get_pad_id(self):
+        return SPECIAL_IDS[PAD_TOKEN]
+
+    def get_unk_id(self):
+        return SPECIAL_IDS[UNK_TOKEN]
+
+    def get_bos_id(self):
+        return SPECIAL_IDS[BOS_TOKEN]
+
+    def get_eos_id(self):
+        return SPECIAL_IDS[EOS_TOKEN]
+
+    def __len__(self):
+        return len(self.id_to_token)
 
     def train(self, corpus: str):
         """
@@ -100,10 +110,13 @@ class BPETokenizer:
         return self
 
     def save(self, path):
-        path = Path(path); path.parent.mkdir(parents=True, exist_ok=True)
-        payload = {"vocab_size": self.vocab_size,
-                   "id_to_token": {str(k): list(v) for k, v in self.id_to_token.items()},
-                   "merges": [list(p) for p in self.merges]}
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "vocab_size": self.vocab_size,
+            "id_to_token": {str(k): list(v) for k, v in self.id_to_token.items()},
+            "merges": [list(p) for p in self.merges],
+        }
         path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
 
     def load(self, path):

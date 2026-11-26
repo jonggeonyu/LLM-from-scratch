@@ -4,8 +4,10 @@ import torch
 
 
 def set_seed(seed=42):
-    random.seed(seed); np.random.seed(seed)
-    torch.manual_seed(seed); torch.cuda.manual_seed_all(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 
 def get_device():
@@ -22,7 +24,7 @@ def count_parameters(model):
 
 def model_summary(model, config=None):
     n = count_parameters(model)
-    print(f"파라미터 수: {n:,} ({n/1e6:.2f}M)")
+    print(f"파라미터 수: {n:,} ({n / 1e6:.2f}M)")
     if config:
         for k, v in config.items():
             print(f"  {k}: {v}")
