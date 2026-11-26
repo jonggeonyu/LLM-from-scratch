@@ -7,6 +7,7 @@ Day 4에서는 multi-head reshape 없이, head 하나에서 attention 계산 자
 queries, keys, values는 이미 W_query, W_key, W_value를 거친 값이라고 가정합니다.
 Day 5의 MultiHeadAttention.forward는 head를 나눈 뒤 이 함수를 그대로 호출합니다.
 """
+
 import torch
 
 

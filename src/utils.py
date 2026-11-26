@@ -4,8 +4,10 @@ import torch
 
 
 def set_seed(seed=42):
-    random.seed(seed); np.random.seed(seed)
-    torch.manual_seed(seed); torch.cuda.manual_seed_all(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
 
 def get_device():
@@ -22,7 +24,7 @@ def count_parameters(model):
 
 def model_summary(model, config=None):
     n = count_parameters(model)
-    print(f"파라미터 수: {n:,} ({n/1e6:.2f}M)")
+    print(f"파라미터 수: {n:,} ({n / 1e6:.2f}M)")
     if config:
         for k, v in config.items():
             print(f"  {k}: {v}")
@@ -34,6 +36,7 @@ def shape_trace(model, batch_size=2, seq_len=8, device="cpu"):
     vocab_size = model.tok_emb.num_embeddings
     idx = torch.randint(0, vocab_size, (batch_size, seq_len), device=device)
     print(f"input ids        {tuple(idx.shape)}")
+    # fmt: off
     tok = model.tok_emb(idx);      print(f"tok_emb          {tuple(tok.shape)}")
     pos = model.pos_emb(torch.arange(seq_len, device=device))
     print(f"pos_emb          {tuple(pos.shape)}")
@@ -42,4 +45,5 @@ def shape_trace(model, batch_size=2, seq_len=8, device="cpu"):
         x = blk(x);                print(f"trf_blocks[{i}]    {tuple(x.shape)}")
     x = model.final_norm(x);       print(f"final_norm       {tuple(x.shape)}")
     logits = model.out_head(x);    print(f"out_head(logits) {tuple(logits.shape)}")
+    # fmt: on
     return logits

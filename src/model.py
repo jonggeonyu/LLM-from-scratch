@@ -10,6 +10,7 @@ GPT 모델 구성 요소.  (교재 4장)
   GPTModel: tok_emb, pos_emb, drop_emb, trf_blocks, final_norm, out_head
 finetune.py와 테스트가 이 이름으로 접근하니 바꾸지 마세요.
 """
+
 import torch
 import torch.nn as nn
 
@@ -44,8 +45,16 @@ class GELU(nn.Module):
     """[제공] 교재 4.3의 tanh 근사 GELU. ReLU와 달리 음수 입력에도 작은 기울기가 남습니다."""
 
     def forward(self, x):
-        return 0.5 * x * (1 + torch.tanh(
-            torch.sqrt(torch.tensor(2.0 / torch.pi)) * (x + 0.044715 * torch.pow(x, 3))))
+        return (
+            0.5
+            * x
+            * (
+                1
+                + torch.tanh(
+                    torch.sqrt(torch.tensor(2.0 / torch.pi)) * (x + 0.044715 * torch.pow(x, 3))
+                )
+            )
+        )
 
 
 class FeedForward(nn.Module):
@@ -67,9 +76,13 @@ class TransformerBlock(nn.Module):
     def __init__(self, cfg):
         super().__init__()
         self.att = MultiHeadAttention(
-            d_in=cfg["emb_dim"], d_out=cfg["emb_dim"],
-            context_length=cfg["context_length"], num_heads=cfg["n_heads"],
-            dropout=cfg["drop_rate"], qkv_bias=cfg["qkv_bias"])
+            d_in=cfg["emb_dim"],
+            d_out=cfg["emb_dim"],
+            context_length=cfg["context_length"],
+            num_heads=cfg["n_heads"],
+            dropout=cfg["drop_rate"],
+            qkv_bias=cfg["qkv_bias"],
+        )
         self.ff = FeedForward(cfg)
         self.norm1 = LayerNorm(cfg["emb_dim"])
         self.norm2 = LayerNorm(cfg["emb_dim"])
@@ -94,8 +107,7 @@ class GPTModel(nn.Module):
         self.tok_emb = nn.Embedding(cfg["vocab_size"], cfg["emb_dim"])
         self.pos_emb = nn.Embedding(cfg["context_length"], cfg["emb_dim"])
         self.drop_emb = nn.Dropout(cfg["drop_rate"])
-        self.trf_blocks = nn.Sequential(
-            *[TransformerBlock(cfg) for _ in range(cfg["n_layers"])])
+        self.trf_blocks = nn.Sequential(*[TransformerBlock(cfg) for _ in range(cfg["n_layers"])])
         self.final_norm = LayerNorm(cfg["emb_dim"])
         self.out_head = nn.Linear(cfg["emb_dim"], cfg["vocab_size"], bias=False)
 

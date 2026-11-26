@@ -12,6 +12,7 @@ NSMC 감성 분류 미세 튜닝.  (교재 6장)
 NSMCDataset의 max_length는 backbone의 context_length 이하로 두세요.
 position embedding은 context_length개 위치만 가지고 있습니다.
 """
+
 import json
 import random
 from pathlib import Path
@@ -21,8 +22,9 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 
 
-def make_sentiment_dataset(train_tsv_path, test_tsv_path=None, val_ratio=0.08,
-                           seed=42, output_dir=None):
+def make_sentiment_dataset(
+    train_tsv_path, test_tsv_path=None, val_ratio=0.08, seed=42, output_dir=None
+):
     def read(p):
         rows = []
         for line in Path(p).read_text(encoding="utf-8").splitlines()[1:]:
@@ -34,16 +36,19 @@ def make_sentiment_dataset(train_tsv_path, test_tsv_path=None, val_ratio=0.08,
                 continue
             rows.append({"text": text, "label": int(label)})
         return rows
+
     data = read(train_tsv_path)
     random.Random(seed).shuffle(data)
     n_val = int(len(data) * val_ratio)
     val, train = data[:n_val], data[n_val:]
     test = read(test_tsv_path) if test_tsv_path else []
     if output_dir:
-        d = Path(output_dir); d.mkdir(parents=True, exist_ok=True)
+        d = Path(output_dir)
+        d.mkdir(parents=True, exist_ok=True)
         for name, rows in [("train", train), ("val", val), ("test", test)]:
             (d / f"nsmc_sentiment_{name}.jsonl").write_text(
-                "\n".join(json.dumps(r, ensure_ascii=False) for r in rows), encoding="utf-8")
+                "\n".join(json.dumps(r, ensure_ascii=False) for r in rows), encoding="utf-8"
+            )
     return train, val, test
 
 
@@ -69,13 +74,16 @@ class NSMCDataset(Dataset):
             self.max_length = self._longest_encoded_length()
         else:
             self.max_length = max_length
-            self.encoded_texts = [t[:self.max_length] for t in self.encoded_texts]
-        self.encoded_texts = [t + [pad_token_id] * (self.max_length - len(t))
-                              for t in self.encoded_texts]
+            self.encoded_texts = [t[: self.max_length] for t in self.encoded_texts]
+        self.encoded_texts = [
+            t + [pad_token_id] * (self.max_length - len(t)) for t in self.encoded_texts
+        ]
 
     def __getitem__(self, index):
-        return (torch.tensor(self.encoded_texts[index], dtype=torch.long),
-                torch.tensor(self.rows[index]["label"], dtype=torch.long))
+        return (
+            torch.tensor(self.encoded_texts[index], dtype=torch.long),
+            torch.tensor(self.rows[index]["label"], dtype=torch.long),
+        )
 
     def __len__(self):
         return len(self.rows)
@@ -174,8 +182,17 @@ def evaluate_model(model, train_loader, val_loader, device, eval_iter, pad_token
     return train_loss, val_loss
 
 
-def train_classifier_simple(model, train_loader, val_loader, optimizer, device, num_epochs,
-                            eval_freq, eval_iter, pad_token_id=0):
+def train_classifier_simple(
+    model,
+    train_loader,
+    val_loader,
+    optimizer,
+    device,
+    num_epochs,
+    eval_freq,
+    eval_iter,
+    pad_token_id=0,
+):
     """교재 6.7의 분류 미세 튜닝 루프.
     반환: (train_losses, val_losses, train_accs, val_accs, examples_seen)"""
     train_losses, val_losses, train_accs, val_accs = [], [], [], []
@@ -193,16 +210,21 @@ def train_classifier_simple(model, train_loader, val_loader, optimizer, device, 
 
             if global_step % eval_freq == 0:
                 train_loss, val_loss = evaluate_model(
-                    model, train_loader, val_loader, device, eval_iter, pad_token_id)
+                    model, train_loader, val_loader, device, eval_iter, pad_token_id
+                )
                 train_losses.append(train_loss)
                 val_losses.append(val_loss)
-                print(f"Ep {epoch+1} (Step {global_step:06d}): "
-                      f"Train loss {train_loss:.3f}, Val loss {val_loss:.3f}")
+                print(
+                    f"Ep {epoch + 1} (Step {global_step:06d}): "
+                    f"Train loss {train_loss:.3f}, Val loss {val_loss:.3f}"
+                )
 
         train_accuracy = calc_accuracy_loader(train_loader, model, device, eval_iter, pad_token_id)
         val_accuracy = calc_accuracy_loader(val_loader, model, device, eval_iter, pad_token_id)
-        print(f"Training accuracy: {train_accuracy*100:.2f}% | "
-              f"Validation accuracy: {val_accuracy*100:.2f}%")
+        print(
+            f"Training accuracy: {train_accuracy * 100:.2f}% | "
+            f"Validation accuracy: {val_accuracy * 100:.2f}%"
+        )
         train_accs.append(train_accuracy)
         val_accs.append(val_accuracy)
 
@@ -216,7 +238,7 @@ def classify_review(text, model, tokenizer, device, max_length=None, pad_token_i
     supported_context_length = model.pos_emb.weight.shape[0]
     if max_length is None:
         max_length = supported_context_length
-    input_ids = input_ids[:min(max_length, supported_context_length)]
+    input_ids = input_ids[: min(max_length, supported_context_length)]
     input_ids += [pad_token_id] * (max_length - len(input_ids))
     input_tensor = torch.tensor(input_ids, device=device).unsqueeze(0)
     with torch.no_grad():

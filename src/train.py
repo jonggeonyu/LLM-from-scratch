@@ -7,6 +7,7 @@ GPT 사전 학습 유틸리티.  (교재 5장, 부록 D.3)
            generate_and_print_sample, train_model_simple, generate, plot_losses,
            save_checkpoint, load_checkpoint
 """
+
 import matplotlib.pyplot as plt
 import torch
 
@@ -75,15 +76,27 @@ def generate_and_print_sample(model, tokenizer, device, start_context):
     encoded = text_to_token_ids(start_context, tokenizer).to(device)
     with torch.no_grad():
         token_ids = generate_text_simple(
-            model=model, idx=encoded, max_new_tokens=50, context_size=context_size)
+            model=model, idx=encoded, max_new_tokens=50, context_size=context_size
+        )
     decoded_text = token_ids_to_text(token_ids, tokenizer)
     print(decoded_text.replace("\n", " "))
     model.train()
 
 
-def train_model_simple(model, train_loader, val_loader, optimizer, device, num_epochs,
-                       eval_freq, eval_iter, start_context, tokenizer,
-                       grad_clip=None, ckpt_path=None):
+def train_model_simple(
+    model,
+    train_loader,
+    val_loader,
+    optimizer,
+    device,
+    num_epochs,
+    eval_freq,
+    eval_iter,
+    start_context,
+    tokenizer,
+    grad_clip=None,
+    ckpt_path=None,
+):
     """교재 5.2의 사전 학습 루프. 반환: (train_losses, val_losses, track_tokens_seen)
 
     grad_clip을 주면 부록 D.3의 gradient clipping을 적용하고,
@@ -95,23 +108,28 @@ def train_model_simple(model, train_loader, val_loader, optimizer, device, num_e
     for epoch in range(num_epochs):
         model.train()
         for input_batch, target_batch in train_loader:
+            # fmt: off
             optimizer.zero_grad()                                  # 이전 step의 gradient 초기화
             loss = calc_loss_batch(input_batch, target_batch, model, device)
             loss.backward()                                        # gradient 계산
             if grad_clip:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=grad_clip)
             optimizer.step()                                       # parameter 갱신
+            # fmt: on
             tokens_seen += input_batch.numel()
             global_step += 1
 
             if global_step % eval_freq == 0:
                 train_loss, val_loss = evaluate_model(
-                    model, train_loader, val_loader, device, eval_iter)
+                    model, train_loader, val_loader, device, eval_iter
+                )
                 train_losses.append(train_loss)
                 val_losses.append(val_loss)
                 track_tokens_seen.append(tokens_seen)
-                print(f"Ep {epoch+1} (Step {global_step:06d}): "
-                      f"Train loss {train_loss:.3f}, Val loss {val_loss:.3f}")
+                print(
+                    f"Ep {epoch + 1} (Step {global_step:06d}): "
+                    f"Train loss {train_loss:.3f}, Val loss {val_loss:.3f}"
+                )
 
         generate_and_print_sample(model, tokenizer, device, start_context)
         if ckpt_path:
@@ -131,7 +149,9 @@ def generate(model, idx, max_new_tokens, context_size, temperature=0.0, top_k=No
         if top_k is not None:
             top_logits, _ = torch.topk(logits, min(top_k, logits.size(-1)))
             min_val = top_logits[:, -1:]
-            logits = torch.where(logits < min_val, torch.tensor(float("-inf")).to(logits.device), logits)
+            logits = torch.where(
+                logits < min_val, torch.tensor(float("-inf")).to(logits.device), logits
+            )
 
         if temperature > 0.0:
             logits = logits / temperature
@@ -164,8 +184,13 @@ def plot_losses(epochs_seen, tokens_seen, train_losses, val_losses, path=None):
 
 def save_checkpoint(model, optimizer, path):
     """교재 5.4 형식으로 model과 optimizer 상태를 함께 저장합니다."""
-    torch.save({"model_state_dict": model.state_dict(),
-                "optimizer_state_dict": optimizer.state_dict() if optimizer else None}, path)
+    torch.save(
+        {
+            "model_state_dict": model.state_dict(),
+            "optimizer_state_dict": optimizer.state_dict() if optimizer else None,
+        },
+        path,
+    )
 
 
 def load_checkpoint(model, optimizer, path, device):
